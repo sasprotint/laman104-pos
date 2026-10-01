@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LAMAN 104 POS</title>
+<style>
+:root{--blue:#075a96;--blue2:#0d77b8;--ink:#14304a;--bg:#f5f7f8;--card:#fff;--line:#dfe6ea;--green:#159447}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);user-select:none}
+header{height:86px;background:#fff;display:flex;align-items:center;gap:24px;padding:14px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3}
+.brand{font-size:32px;font-weight:900;color:var(--blue);letter-spacing:.5px}.brand small{display:block;font-size:11px;letter-spacing:4px;text-align:center}
+.topstat{margin-left:auto;font-weight:700;background:#eef6fb;padding:12px 16px;border-radius:12px}
+main{display:grid;grid-template-columns:1fr 390px;min-height:calc(100vh - 86px)}
+.menu{padding:20px}.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title h2{margin:0;font-size:24px}.pill{background:#e7f3fb;color:var(--blue);padding:8px 12px;border-radius:999px;font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.item{background:var(--card);border:2px solid transparent;border-radius:18px;padding:18px;min-height:128px;box-shadow:0 2px 10px #0000000a;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
+.item:active{transform:scale(.98);border-color:var(--blue2)} .emoji{font-size:32px}.name{font-size:18px;font-weight:800}.price{font-size:18px;font-weight:900;color:var(--blue)}
+.cart{background:#fff;border-left:1px solid var(--line);padding:20px;display:flex;flex-direction:column}
+.cart h2{margin:0 0 12px}.orderline{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.orderline b{display:block}.muted{font-size:13px;color:#71808c}.remove{border:0;background:#f3f3f3;border-radius:9px;width:34px;height:34px;font-size:18px}
+.empty{padding:50px 10px;text-align:center;color:#8a969e}
+.totalbox{margin-top:auto;border-top:2px solid var(--line);padding-top:14px}.row{display:flex;justify-content:space-between;margin:8px 0}.total{font-size:30px;font-weight:900;color:var(--blue)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.pay{border:0;border-radius:14px;padding:17px 8px;font-size:18px;font-weight:900;color:#fff}.cash{background:var(--green)}.qr{background:var(--blue2)}
+.mixbar{margin:18px 0 0;background:#eaf6fd;border:2px dashed #68aeda;border-radius:16px;padding:14px;display:flex;justify-content:space-between;align-items:center}
+.mixbar button{border:0;background:var(--blue);color:#fff;padding:12px 16px;border-radius:12px;font-weight:900;font-size:16px}
+.overlay{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:10}.modal{width:min(720px,90vw);max-height:80vh;overflow:auto;background:#fff;border-radius:22px;padding:22px}
+.modal h2{margin-top:0}.mixgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mixopt{border:1px solid var(--line);background:#fff;padding:15px;border-radius:12px;font-weight:800}.mixopt.selected{background:#dff1fb;border:2px solid var(--blue)}
+.modalactions{display:flex;gap:10px;margin-top:18px}.modalactions button{flex:1;padding:15px;border:0;border-radius:12px;font-weight:900;font-size:16px}.cancel{background:#eee}.confirm{background:var(--blue);color:#fff}
+.toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%);background:#123;color:#fff;padding:13px 18px;border-radius:12px;display:none;z-index:20}
+@media(max-width:850px){main{grid-template-columns:1fr}.cart{border-left:0;border-top:1px solid var(--line)}.grid{grid-template-columns:repeat(2,1fr)}}
+</style></head>
+<body>
+<header><div class="brand">LAMAN 104<small>ICE BLENDED</small></div><div class="topstat">Jualan Hari Ini: <span id="sales">RM 0.00</span></div></header>
+<main>
+<section class="menu">
+<div class="section-title"><h2>Ice Blended</h2><span class="pill">Normal RM3.00</span></div>
+<div class="grid" id="menu"></div>
+<div class="mixbar"><div><b>Mix 2 Flavours</b><div class="muted">Pilih 2 flavour • RM3 + RM1</div></div><button onclick="openMix()">+ MIX RM1</button></div>
+</section>
+<aside class="cart"><h2 id="orderNo">Order #A001</h2><div id="cart"><div class="empty">Tekan flavour untuk mula order</div></div>
+<div class="totalbox"><div class="row"><span>Jumlah</span><span class="total" id="total">RM 0.00</span></div>
+<div class="actions"><button class="pay cash" onclick="pay('Cash')">CASH</button><button class="pay qr" onclick="pay('QR')">QR PAY</button></div></div></aside>
+</main>
+<div class="overlay" id="overlay"><div class="modal"><h2>Pilih 2 Flavour</h2><div class="muted">Tekan dua pilihan sahaja.</div><div class="mixgrid" id="mixgrid"></div><div class="modalactions"><button class="cancel" onclick="closeMix()">Batal</button><button class="confirm" onclick="addMix()">Tambah RM4.00</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const flavours=["Strawberry Yogurt","Mango Yogurt","Chocolate Chip","Chocolate","Oreo","Cappuccino","Hazelnut Coffee","Vanilla","Blueberry","White Coffee"];
+const icons=["🍓","🥭","🍫","🍫","🍪","☕","🌰","🍦","🫐","☕"];
+let cart=[], selected=[], order=parseInt(localStorage.getItem("l104order")||"1"), sales=parseFloat(localStorage.getItem("l104sales")||"0");
+function money(n){return "RM "+n.toFixed(2)}
+function renderMenu(){menu.innerHTML=flavours.map((f,i)=>`<div class="item" onclick="addNormal('${f.replaceAll("'","\\'")}')"><div class="emoji">${icons[i]}</div><div class="name">${f}</div><div class="price">RM 3.00</div></div>`).join("")}
+function addNormal(name){cart.push({name,desc:"Normal",price:3});renderCart()}
+function renderCart(){orderNo.textContent="Order #A"+String(order).padStart(3,"0");cartEl=document.getElementById("cart");cartEl.innerHTML=cart.length?cart.map((x,i)=>`<div class="orderline"><div><b>${x.name}</b><span class="muted">${x.desc}</span></div><div><b>${money(x.price)}</b><button class="remove" onclick="removeItem(${i})">×</button></div></div>`).join(""):`<div class="empty">Tekan flavour untuk mula order</div>`;document.getElementById("total").textContent=money(cart.reduce((a,b)=>a+b.price,0));document.getElementById("sales").textContent=money(sales)}
+function removeItem(i){cart.splice(i,1);renderCart()}
+function openMix(){selected=[];document.getElementById("mixgrid").innerHTML=flavours.map((f,i)=>`<button class="mixopt" id="m${i}" onclick="pick(${i})">${f}</button>`).join("");overlay.style.display="flex"}
+function pick(i){if(selected.includes(i)){selected=selected.filter(x=>x!==i)}else if(selected.length<2){selected.push(i)}document.querySelectorAll(".mixopt").forEach((e,j)=>e.classList.toggle("selected",selected.includes(j)))}
+function closeMix(){overlay.style.display="none"}
+function addMix(){if(selected.length!==2){show("Pilih 2 flavour dulu");return}let names=selected.map(i=>flavours[i]);cart.push({name:"Mix 2 Flavours",desc:names.join(" + "),price:4});closeMix();renderCart()}
+function pay(method){let total=cart.reduce((a,b)=>a+b.price,0);if(!total){show("Order masih kosong");return}sales+=total;localStorage.setItem("l104sales",sales);show(`Order #A${String(order).padStart(3,"0")} • ${method} • ${money(total)} ✓`);order++;localStorage.setItem("l104order",order);cart=[];renderCart()}
+function show(t){toast.textContent=t;toast.style.display="block";setTimeout(()=>toast.style.display="none",2400)}
+renderMenu();renderCart();
+</script></body></html>
