@@ -56,15 +56,6 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 370px;min-height:0}.menu{p
   .checkout{flex-shrink:0}
 }
 
-
-/* V14 Daily Sales */
-.dailyDash{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:9px 0 12px}
-.dailyBox{background:#f7f3ec;border:1px solid #e4ddd2;border-radius:10px;padding:9px;text-align:center}
-.dailyBox b{display:block;font-size:17px;color:#b43d38}.dailyBox span{font-size:10px;color:#766d65;font-weight:800}
-.dayGroup{margin:10px 0 15px;border:1px solid #e5ded4;border-radius:11px;overflow:hidden;background:#fff}
-.dayHead{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;background:#f3eee7;font-weight:900}
-.dayStats{padding:7px 12px;font-size:11px;color:#6f665f;border-bottom:1px solid #eee7df}
-@media(max-width:600px){.dailyDash{grid-template-columns:repeat(2,1fr)}}
 </style></head>
 <body><div class="app">
 <header>
@@ -126,62 +117,30 @@ function render(){
 document.getElementById("orderNo").textContent="Order #A"+String(order).padStart(3,"0");
 document.getElementById("cart").innerHTML=cart.length?cart.map((x,i)=>`<div class="line"><div><b>${x.n}</b><div class="desc">${x.d} • RM${x.p.toFixed(2)} / cup</div></div><div class="right">${rm(x.p*(x.q||1))}<div class="qtybox"><button class="qtybtn" onclick="changeQty(${i},-1)">−</button><span class="qtynum">${x.q||1}</span><button class="qtybtn" onclick="changeQty(${i},1)">+</button><button class="del" onclick="del(${i})">×</button></div></div></div>`).join(""):`<div class="empty">Tekan menu untuk mula order</div>`;
 document.getElementById("total").textContent=rm(cart.reduce((a,x)=>a+x.p*(x.q||1),0));
-let todayKey=new Date().toLocaleDateString("en-CA");
-let todayRows=(Array.isArray(history)?history:[]).filter(x=>historyDateKey(x)===todayKey);
-document.getElementById("sales").textContent=rm(todayRows.reduce((a,x)=>a+Number(x.total||0),0));
-document.getElementById("orders").textContent=todayRows.length
+let td=l104TodayRows();document.getElementById("sales").textContent=rm(td.reduce((a,x)=>a+Number(x.total||0),0));document.getElementById("orders").textContent=td.length
 }
 function pay(method){
 let t=cart.reduce((a,x)=>a+x.p*(x.q||1),0);if(!t)return note("Order masih kosong");
 let no="A"+String(order).padStart(3,"0");
 let qty=cart.reduce((a,x)=>a+(x.q||1),0);
-let now=new Date();
-history.unshift({no:no,method:method,total:t,items:cart.map(x=>({n:x.n,q:x.q||1,p:x.p})),qty:qty,time:now.toLocaleString("ms-MY"),dateKey:now.toLocaleDateString("en-CA")});
+let now=new Date();history.unshift({no:no,method:method,total:t,items:cart.map(x=>({n:x.n,q:x.q||1,p:x.p})),qty:qty,time:now.toLocaleString("ms-MY"),dateKey:now.toLocaleDateString("en-CA")});
 localStorage.setItem("l104history",JSON.stringify(history));
 sales+=t;orders++;localStorage.setItem("l104sales",sales);localStorage.setItem("l104orders",orders);
 note("Order #"+no+" • "+method+" • "+rm(t)+" ✓");order++;localStorage.setItem("l104order",order);cart=[];render()
 }
 
-function historyDateKey(x){
- if(x&&x.dateKey) return x.dateKey;
- if(!x||!x.time) return "";
- let m=String(x.time).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
- if(m) return m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0");
- let d=new Date(x.time); return isNaN(d)?"":d.toLocaleDateString("en-CA");
+function l104DateKey(x){
+ if(x&&x.dateKey)return x.dateKey;
+ let t=String((x&&x.time)||"");
+ let m=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+ if(m)return m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0");
+ return "";
 }
-function historyItemText(x){
- let arr=Array.isArray(x.items)?x.items:[];
- return arr.map(i=>{
-   if(typeof i==="string") return i==="[object Object]"?"Rekod lama":i;
-   if(i&&typeof i==="object") return (i.n||i.name||i.flavour||i.item||"Item")+" ×"+(i.q||i.qty||i.quantity||1);
-   return "Item";
- }).join(" • ");
+function l104TodayRows(){
+ let k=new Date().toLocaleDateString("en-CA");
+ return (Array.isArray(history)?history:[]).filter(x=>l104DateKey(x)===k);
 }
-function dayLabel(key){
- let today=new Date().toLocaleDateString("en-CA");
- let d=new Date(key+"T12:00:00");
- let label=isNaN(d)?key:d.toLocaleDateString("ms-MY",{day:"numeric",month:"short",year:"numeric"});
- return key===today?label+" • HARI INI":label;
-}
-function openHistory(){
-document.getElementById("histModal").classList.add("show");
-let rows=Array.isArray(history)?history:[];
-let groups={};
-rows.forEach(x=>{let k=historyDateKey(x)||"Tarikh lama";(groups[k]||(groups[k]=[])).push(x)});
-let keys=Object.keys(groups).sort().reverse();
-let today=new Date().toLocaleDateString("en-CA"), tr=groups[today]||[];
-let ts=tr.reduce((a,x)=>a+Number(x.total||0),0), tc=tr.reduce((a,x)=>a+Number(x.qty||1),0);
-let cash=tr.filter(x=>x.method==="Cash").reduce((a,x)=>a+Number(x.total||0),0);
-let qr=tr.filter(x=>x.method==="QR Pay").reduce((a,x)=>a+Number(x.total||0),0);
-document.getElementById("histSummary").innerHTML=`<div><b>${rm(ts)}</b><span>Hari Ini</span></div><div><b>${tr.length}</b><span>Order / Customer</span></div><div><b>${tc}</b><span>Cup</span></div><div><b>${rm(cash)}</b><span>Cash</span></div><div><b>${rm(qr)}</b><span>QR Pay</span></div>`;
-document.getElementById("histList").innerHTML=keys.length?keys.map(k=>{
- let r=groups[k], sale=r.reduce((a,x)=>a+Number(x.total||0),0), cups=r.reduce((a,x)=>a+Number(x.qty||1),0);
- let ca=r.filter(x=>x.method==="Cash").reduce((a,x)=>a+Number(x.total||0),0);
- let q=r.filter(x=>x.method==="QR Pay").reduce((a,x)=>a+Number(x.total||0),0);
- let items=r.map(x=>`<div class="histItem"><div class="histRow"><span class="histNo">#${x.no} • ${x.qty||1} cup</span><span class="histPay">${x.method} • ${rm(Number(x.total||0))}</span></div><div class="histItems">${historyItemText(x)}</div><div class="histTime">${x.time||""}</div></div>`).join("");
- return `<div class="dayGroup"><div class="dayHead"><span>${dayLabel(k)}</span><span>${rm(sale)}</span></div><div class="dayStats">${r.length} order/customer • ${cups} cup • Cash ${rm(ca)} • QR ${rm(q)}</div>${items}</div>`;
-}).join(""):'<div class="empty">Belum ada rekod order.</div>'
-}
+function openHistory(){renderHistory();document.getElementById("historyModal").style.display="block"}
 function closeHistory(){document.getElementById("historyModal").style.display="none"}
 function renderHistory(){
 let cash=history.filter(x=>x.method==="CASH").reduce((a,x)=>a+x.total,0);
