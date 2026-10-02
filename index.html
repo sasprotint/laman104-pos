@@ -17,7 +17,13 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 370px;min-height:0}.menu{p
 .sectionhead{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 10px}.sectionhead h2{font-size:20px;margin:0;color:#f5e7d3}.pricepill{background:#a43b35;color:#fff;border-radius:999px;padding:7px 11px;font-weight:950}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
 .card{border:1px solid #d4c2a8;background:var(--card);border-radius:15px;overflow:hidden;text-align:left;box-shadow:0 2px 9px #0000000d;padding:0;min-width:0}
-.card:active{transform:scale(.98)}.pic{height:80px;display:flex;align-items:center;justify-content:center;font-size:45px;position:relative}
+.card:active{transform:scale(.98)}.pic{height:100px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.cup{width:55px;height:68px;border-radius:7px 7px 16px 16px;position:relative;box-shadow:0 7px 12px #0003;border:2px solid #ffffffaa}
+.cup:before{content:"";position:absolute;left:7px;right:7px;top:-12px;height:22px;border-radius:50%;background:#fff7e8;box-shadow:0 3px 0 #ffffff55}
+.cup:after{content:"";position:absolute;width:5px;height:42px;background:#272727;right:7px;top:-28px;border-radius:4px;transform:rotate(7deg)}
+.cup span{position:absolute;left:0;right:0;bottom:13px;text-align:center;font-size:22px}
+.straw{background:linear-gradient(#ffd8df,#e95e77 70%)}.mango{background:linear-gradient(#fff1b6,#f2b62f 72%)}.chip{background:radial-gradient(circle at 25% 25%,#3b2419 0 3px,transparent 4px),linear-gradient(#e2c0a9,#a97055)}.choc{background:linear-gradient(#c28b6b,#75432f)}.oreo{background:radial-gradient(circle at 35% 35%,#292929 0 4px,transparent 5px),linear-gradient(#eee4dc,#b8a59a)}.capp{background:linear-gradient(#ead3bd,#b97c55)}.hazel{background:radial-gradient(circle at 30% 40%,#65402b 0 3px,transparent 4px),linear-gradient(#e1bd9d,#a56f4c)}.van{background:linear-gradient(#fffdf0,#f1e2b8)}.blue{background:linear-gradient(#eee1ff,#8455b4)}.whitec{background:linear-gradient(#f2ddc7,#c69a73)}
+.mixvisual{height:42px;display:flex;align-items:center;gap:8px;margin-bottom:6px}.mini{width:25px;height:34px;border-radius:4px 4px 9px 9px;border:1px solid #fff8;box-shadow:0 3px 5px #0002}
 .c1{background:linear-gradient(145deg,#ffdadd,#fff2f3)}.c2{background:linear-gradient(145deg,#ffe5a4,#fff7dc)}.c3{background:linear-gradient(145deg,#d8b39d,#f5e4db)}.c4{background:linear-gradient(145deg,#b9836c,#ead4c8)}.c5{background:linear-gradient(145deg,#d9d4d2,#f5f4f3)}
 .c6{background:linear-gradient(145deg,#d9b18d,#f2e1d1)}.c7{background:linear-gradient(145deg,#c9946e,#ead8c7)}.c8{background:linear-gradient(145deg,#fff3d5,#fffdf5)}.c9{background:linear-gradient(145deg,#d9c1f1,#f2e9fa)}.c10{background:linear-gradient(145deg,#dfc4a7,#f5e8dc)}
 .ct{padding:8px 10px;color:#302a25}.name{font-weight:900;font-size:14px;line-height:1.1;min-height:31px}.price{color:#a43b35;font-weight:950;font-size:15px;margin-top:3px}
@@ -31,7 +37,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 370px;min-height:0}.menu{p
 </style></head>
 <body><div class="app">
 <header>
-<div class="brand">LAMAN 104<small>ICE BLENDED</small></div>
+<div class="brand">LAMAN 104<small>ICE BLENDED • SAME GREAT TASTE</small></div>
 <div class="tabs"><button class="tab active">ICE BLENDED</button><button class="tab" disabled>COFFEE • AKAN DATANG</button></div>
 <div class="stats"><div class="stat">Jualan <span id="sales">RM0</span></div><div class="stat">Order <span id="orders">0</span></div></div>
 <button class="reset" onclick="resetAll()">Reset</button>
@@ -52,13 +58,13 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 370px;min-height:0}.menu{p
 </main></div><div class="toast" id="toast"></div>
 <script>
 const normal=[
-["🍓","Strawberry Yogurt","c1"],["🥭","Mango Yogurt","c2"],["🍫","Chocolate Chip","c3"],["🍫","Chocolate","c4"],["🍪","Oreo","c5"],
-["☕","Cappuccino","c6"],["🌰","Hazelnut Coffee","c7"],["🍦","Vanilla","c8"],["🫐","Blueberry","c9"],["☕","White Coffee","c10"]];
+["Strawberry Yogurt","straw","🍓"],["Mango Yogurt","mango","🥭"],["Chocolate Chip","chip","🍫"],["Chocolate","choc","🍫"],["Oreo","oreo","●"],
+["Cappuccino","capp","☕"],["Hazelnut Coffee","hazel","🌰"],["Vanilla","van","✿"],["Blueberry","blue","🫐"],["White Coffee","whitec","☕"]];
 const mixes=["Strawberry Chocolate","Strawberry Oreo","Oreo Chocolate","Vanilla Chocolate","Vanilla Mango","Vanilla Strawberry","Vanilla Blueberry"];
 let cart=[],order=+(localStorage.getItem("l104order")||1),sales=+(localStorage.getItem("l104sales")||0),orders=+(localStorage.getItem("l104orders")||0);
 const rm=n=>"RM"+n.toFixed(2);
 function draw(){
-document.getElementById("normal").innerHTML=normal.map(x=>`<button class="card" onclick='add(${JSON.stringify(x[1])},"Normal",3)'><div class="pic ${x[2]}">${x[0]}</div><div class="ct"><div class="name">${x[1]}</div><div class="price">RM3.00</div></div></button>`).join("");
+document.getElementById("normal").innerHTML=normal.map(x=>`<button class="card" onclick='add(${JSON.stringify(x[0])},"Original",3)'><div class="pic"><div class="cup ${x[1]}"><span>${x[2]}</span></div></div><div class="ct"><div class="name">${x[0]}</div><div class="price">RM3.00</div></div></button>`).join("");
 document.getElementById("mix").innerHTML=mixes.map(x=>`<button class="mixcard" onclick='add(${JSON.stringify(x)},"Mix 2 Flavours",3)'><div class="mixname">🥤 ${x}</div><div class="mixprice">RM3.00</div></button>`).join(""); render();
 }
 function add(n,d,p){cart.push({n,d,p});render()}
