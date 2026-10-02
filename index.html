@@ -127,7 +127,26 @@ localStorage.setItem("l104history",JSON.stringify(history));
 sales+=t;orders++;localStorage.setItem("l104sales",sales);localStorage.setItem("l104orders",orders);
 note("Order #"+no+" • "+method+" • "+rm(t)+" ✓");order++;localStorage.setItem("l104order",order);cart=[];render()
 }
-function openHistory(){renderHistory();document.getElementById("historyModal").style.display="block"}
+function openHistory(){
+document.getElementById("histModal").classList.add("show");
+let cash=history.filter(x=>x.method==="Cash").reduce((a,x)=>a+Number(x.total||0),0);
+let qr=history.filter(x=>x.method==="QR Pay").reduce((a,x)=>a+Number(x.total||0),0);
+let total=history.reduce((a,x)=>a+Number(x.total||0),0);
+document.getElementById("histSummary").innerHTML=`<div><b>${rm(total)}</b><span>Jumlah Jualan</span></div><div><b>${history.length}</b><span>Order</span></div><div><b>${rm(cash)}</b><span>Cash</span></div><div><b>${rm(qr)}</b><span>QR Pay</span></div>`;
+document.getElementById("histList").innerHTML=history.length?history.map(x=>{
+let items=Array.isArray(x.items)?x.items:[];
+let itemText=items.map(i=>{
+if(typeof i==="string") return i==="[object Object]"?"Item lama":i;
+if(i&&typeof i==="object"){
+let name=i.n||i.name||i.flavour||i.item||"Item";
+let q=Number(i.q||i.qty||i.quantity||1);
+return `${name} ×${q}`;
+}
+return String(i||"Item");
+}).join(" • ");
+return `<div class="histItem"><div class="histRow"><span class="histNo">#${x.no} • ${x.qty||1} cup</span><span class="histPay">${x.method} • ${rm(Number(x.total||0))}</span></div><div class="histItems">${itemText||"Tiada nama item"}</div><div class="histTime">${x.time||""}</div></div>`
+}).join(""):'<div class="empty">Belum ada rekod order.</div>'
+}
 function closeHistory(){document.getElementById("historyModal").style.display="none"}
 function renderHistory(){
 let cash=history.filter(x=>x.method==="CASH").reduce((a,x)=>a+x.total,0);
