@@ -54,6 +54,26 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 370px;min-height:0}.menu{p
 .qtybtn,.del{width:38px!important;height:36px!important;font-size:18px}
 .qtynum{min-width:28px;font-size:16px}
 }
+
+/* V8 iPad orientation fix */
+@media (min-width:700px) and (orientation:portrait){
+  .app{display:block!important}
+  .menu{height:auto!important;overflow:visible!important}
+  .order{height:auto!important;position:relative!important;top:auto!important;display:block!important;overflow:visible!important}
+  #cart{overflow:visible!important;min-height:120px!important}
+  .total,.pay{position:static!important}
+}
+@media (min-width:700px) and (orientation:landscape){
+  .app{display:grid!important;grid-template-columns:minmax(0,1fr) 400px!important;min-height:100vh}
+  .menu{height:100vh!important;overflow-y:auto!important;overflow-x:hidden!important}
+  .order{height:100vh!important;position:sticky!important;top:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+  #cart{flex:1!important;overflow-y:auto!important;min-height:0!important}
+  .total{margin-top:auto!important;position:static!important}
+  .pay{position:static!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
+  .qtybtn,.del{width:36px!important;height:34px!important;font-size:17px!important}
+  .qtynum{min-width:26px!important}
+}
+
 </style></head>
 <body><div class="app">
 <header>
