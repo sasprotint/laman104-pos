@@ -93,7 +93,9 @@ const normal=[
 ["Strawberry Yogurt","straw","🍓"],["Mango Yogurt","mango","🥭"],["Chocolate Chip","chip","🍫"],["Chocolate","choc","🍫"],["Oreo","oreo","●"],
 ["Cappuccino","capp","☕"],["Hazelnut Coffee","hazel","🌰"],["Vanilla","van","✿"],["Blueberry","blue","🫐"],["White Coffee","whitec","☕"]];
 const mixes=["Strawberry Chocolate","Strawberry Oreo","Oreo Chocolate","Vanilla Chocolate","Vanilla Mango","Vanilla Strawberry","Vanilla Blueberry"];
-let cart=[],order=+(localStorage.getItem("l104order")||1),sales=+(localStorage.getItem("l104sales")||0),orders=+(localStorage.getItem("l104orders")||0),history=JSON.parse(localStorage.getItem("l104history")||"[]");
+let cart=[],order=+(localStorage.getItem("l104order")||1),sales=+(localStorage.getItem("l104sales")||0),orders=+(localStorage.getItem("l104orders")||0),history=[];
+try{history=JSON.parse(localStorage.getItem("l104history")||"[]");if(!Array.isArray(history))history=[]}
+catch(e){history=[];localStorage.setItem("l104history","[]")}
 const rm=n=>"RM"+n.toFixed(2);
 function draw(){
 document.getElementById("normal").innerHTML=normal.map(x=>`<button class="card" onclick='add(${JSON.stringify(x[0])},"Original",3)'><div class="pic"><div class="cup ${x[1]}"><span>${x[2]}</span></div></div><div class="ct"><div class="name">${x[0]}</div><div class="price">RM3.00</div></div></button>`).join("");
@@ -135,7 +137,7 @@ let qr=history.filter(x=>x.method==="QR PAY").reduce((a,x)=>a+x.total,0);
 document.getElementById("hSales").textContent=rm(history.reduce((a,x)=>a+x.total,0));
 document.getElementById("hOrders").textContent=history.length;
 document.getElementById("hCash").textContent=rm(cash);document.getElementById("hQR").textContent=rm(qr);
-document.getElementById("histList").innerHTML=history.length?history.map(x=>`<div class="histItem"><div class="histRow"><span class="histNo">#${x.no} • ${x.qty} cup</span><span class="histPay">${x.method} • ${rm(x.total)}</span></div><div class="histItems">${x.items.map(i=>typeof i==="string"?i:((i.n||i.name||i.flavour||i.item||"Item")+" ×"+(i.q||i.qty||i.quantity||1))).join(" • ")}</div><div class="histTime">${x.time}</div></div>`).join(""):'<div class="empty">Belum ada rekod order.</div>'
+document.getElementById("histList").innerHTML=history.length?history.map(x=>`<div class="histItem"><div class="histRow"><span class="histNo">#${x.no} • ${x.qty} cup</span><span class="histPay">${x.method} • ${rm(x.total)}</span></div><div class="histItems">${(Array.isArray(x.items)?x.items:[]).map(i=>typeof i==="string"?i:((i&&i.n?i.n:"Item")+" ×"+(i&&i.q?i.q:1))).join(" • ")}</div><div class="histTime">${x.time}</div></div>`).join(""):'<div class="empty">Belum ada rekod order.</div>'
 }
 function clearHistory(){if(confirm("Padam semua Order History?")){history=[];localStorage.setItem("l104history","[]");renderHistory();note("History dikosongkan")}}
 function resetAll(){if(confirm("Reset jualan, bilangan order dan mula semula A001?")){sales=0;orders=0;order=1;cart=[];history=[];localStorage.setItem("l104history","[]");localStorage.setItem("l104sales",0);localStorage.setItem("l104orders",0);localStorage.setItem("l104order",1);render();note("Data ujian dikosongkan")}}
