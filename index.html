@@ -94,6 +94,14 @@ const normal=[
 ["Cappuccino","capp","☕"],["Hazelnut Coffee","hazel","🌰"],["Vanilla","van","✿"],["Blueberry","blue","🫐"],["White Coffee","whitec","☕"]];
 const mixes=["Strawberry Chocolate","Strawberry Oreo","Oreo Chocolate","Vanilla Chocolate","Vanilla Mango","Vanilla Strawberry","Vanilla Blueberry"];
 let cart=[],order=+(localStorage.getItem("l104order")||1),sales=+(localStorage.getItem("l104sales")||0),orders=+(localStorage.getItem("l104orders")||0),history=[];
+let _d=new Date(),todayKey=_d.getFullYear()+"-"+String(_d.getMonth()+1).padStart(2,"0")+"-"+String(_d.getDate()).padStart(2,"0");
+let savedDay=localStorage.getItem("l104day");
+if(savedDay!==todayKey){
+ sales=0;orders=0;
+ localStorage.setItem("l104sales","0");
+ localStorage.setItem("l104orders","0");
+ localStorage.setItem("l104day",todayKey);
+}
 try{history=JSON.parse(localStorage.getItem("l104history")||"[]");if(!Array.isArray(history))history=[]}
 catch(e){history=[];localStorage.setItem("l104history","[]")}
 const rm=n=>"RM"+n.toFixed(2);
@@ -117,28 +125,17 @@ function render(){
 document.getElementById("orderNo").textContent="Order #A"+String(order).padStart(3,"0");
 document.getElementById("cart").innerHTML=cart.length?cart.map((x,i)=>`<div class="line"><div><b>${x.n}</b><div class="desc">${x.d} • RM${x.p.toFixed(2)} / cup</div></div><div class="right">${rm(x.p*(x.q||1))}<div class="qtybox"><button class="qtybtn" onclick="changeQty(${i},-1)">−</button><span class="qtynum">${x.q||1}</span><button class="qtybtn" onclick="changeQty(${i},1)">+</button><button class="del" onclick="del(${i})">×</button></div></div></div>`).join(""):`<div class="empty">Tekan menu untuk mula order</div>`;
 document.getElementById("total").textContent=rm(cart.reduce((a,x)=>a+x.p*(x.q||1),0));
-let td=l104TodayRows();document.getElementById("sales").textContent=rm(td.reduce((a,x)=>a+Number(x.total||0),0));document.getElementById("orders").textContent=td.length
+document.getElementById("sales").textContent=rm(sales);
+document.getElementById("orders").textContent=orders
 }
 function pay(method){
 let t=cart.reduce((a,x)=>a+x.p*(x.q||1),0);if(!t)return note("Order masih kosong");
 let no="A"+String(order).padStart(3,"0");
 let qty=cart.reduce((a,x)=>a+(x.q||1),0);
-let now=new Date();history.unshift({no:no,method:method,total:t,items:cart.map(x=>({n:x.n,q:x.q||1,p:x.p})),qty:qty,time:now.toLocaleString("ms-MY"),dateKey:now.toLocaleDateString("en-CA")});
+history.unshift({no:no,method:method,total:t,items:cart.map(x=>({n:x.n,q:x.q||1,p:x.p})),qty:qty,time:new Date().toLocaleString("ms-MY")});
 localStorage.setItem("l104history",JSON.stringify(history));
-sales+=t;orders++;localStorage.setItem("l104sales",sales);localStorage.setItem("l104orders",orders);
+sales+=t;orders++;localStorage.setItem("l104sales",sales);localStorage.setItem("l104orders",orders);localStorage.setItem("l104day",todayKey);
 note("Order #"+no+" • "+method+" • "+rm(t)+" ✓");order++;localStorage.setItem("l104order",order);cart=[];render()
-}
-
-function l104DateKey(x){
- if(x&&x.dateKey)return x.dateKey;
- let t=String((x&&x.time)||"");
- let m=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
- if(m)return m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0");
- return "";
-}
-function l104TodayRows(){
- let k=new Date().toLocaleDateString("en-CA");
- return (Array.isArray(history)?history:[]).filter(x=>l104DateKey(x)===k);
 }
 function openHistory(){renderHistory();document.getElementById("historyModal").style.display="block"}
 function closeHistory(){document.getElementById("historyModal").style.display="none"}
