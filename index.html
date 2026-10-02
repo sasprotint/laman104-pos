@@ -45,6 +45,15 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 370px;min-height:0}.menu{p
 .histRow{display:flex;justify-content:space-between;gap:10px}.histNo{font-weight:950;font-size:17px}.histPay{font-weight:900;color:#a43b35}.histItems{font-size:13px;color:#6f6153;margin-top:7px;line-height:1.45}.histTime{font-size:11px;color:#988777;margin-top:5px}
 .histBottom{padding:11px 12px;border-top:1px solid #d4c2a8;display:flex;justify-content:flex-end}.clearHist{border:1px solid #dca7a7;background:#fff0f0;color:#b83d3d;border-radius:10px;padding:10px 13px;font-weight:900}
 @media(max-width:650px){.historyModal{padding:8px}.historyBox{height:calc(100vh - 16px)}.summary{grid-template-columns:repeat(2,1fr)}}
+
+@media(min-width:900px){
+.app{grid-template-columns:minmax(0,1fr) 430px!important}
+.order{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#cart{flex:1;overflow-y:auto;min-height:0}
+.total{margin-top:auto}
+.qtybtn,.del{width:38px!important;height:36px!important;font-size:18px}
+.qtynum{min-width:28px;font-size:16px}
+}
 </style></head>
 <body><div class="app">
 <header>
