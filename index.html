@@ -93,17 +93,13 @@ const normal=[
 ["Strawberry Yogurt","straw","🍓"],["Mango Yogurt","mango","🥭"],["Chocolate Chip","chip","🍫"],["Chocolate","choc","🍫"],["Oreo","oreo","●"],
 ["Cappuccino","capp","☕"],["Hazelnut Coffee","hazel","🌰"],["Vanilla","van","✿"],["Blueberry","blue","🫐"],["White Coffee","whitec","☕"]];
 const mixes=["Strawberry Chocolate","Strawberry Oreo","Oreo Chocolate","Vanilla Chocolate","Vanilla Mango","Vanilla Strawberry","Vanilla Blueberry"];
-let cart=[],order=+(localStorage.getItem("l104order")||1),sales=+(localStorage.getItem("l104sales")||0),orders=+(localStorage.getItem("l104orders")||0),history=[];
-let _d=new Date(),todayKey=_d.getFullYear()+"-"+String(_d.getMonth()+1).padStart(2,"0")+"-"+String(_d.getDate()).padStart(2,"0");
-let savedDay=localStorage.getItem("l104day");
-if(savedDay!==todayKey){
- sales=0;orders=0;
- localStorage.setItem("l104sales","0");
- localStorage.setItem("l104orders","0");
- localStorage.setItem("l104day",todayKey);
-}
+function localDayKey(d=new Date()){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function recordDayKey(x){if(x&&x.dateKey)return x.dateKey;let t=String((x&&x.time)||"");let m=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?m[3]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0"):""}
+let cart=[],order=+(localStorage.getItem("l104order")||1),sales=0,orders=0,history=[];
 try{history=JSON.parse(localStorage.getItem("l104history")||"[]");if(!Array.isArray(history))history=[]}
 catch(e){history=[];localStorage.setItem("l104history","[]")}
+let _today=localDayKey(),_todayRows=history.filter(x=>recordDayKey(x)===_today);
+sales=_todayRows.reduce((a,x)=>a+Number(x.total||0),0);orders=_todayRows.length;
 const rm=n=>"RM"+n.toFixed(2);
 function draw(){
 document.getElementById("normal").innerHTML=normal.map(x=>`<button class="card" onclick='add(${JSON.stringify(x[0])},"Original",3)'><div class="pic"><div class="cup ${x[1]}"><span>${x[2]}</span></div></div><div class="ct"><div class="name">${x[0]}</div><div class="price">RM3.00</div></div></button>`).join("");
@@ -132,9 +128,9 @@ function pay(method){
 let t=cart.reduce((a,x)=>a+x.p*(x.q||1),0);if(!t)return note("Order masih kosong");
 let no="A"+String(order).padStart(3,"0");
 let qty=cart.reduce((a,x)=>a+(x.q||1),0);
-history.unshift({no:no,method:method,total:t,items:cart.map(x=>({n:x.n,q:x.q||1,p:x.p})),qty:qty,time:new Date().toLocaleString("ms-MY")});
+let now=new Date();history.unshift({no:no,method:method,total:t,items:cart.map(x=>({n:x.n,q:x.q||1,p:x.p})),qty:qty,time:now.toLocaleString("ms-MY"),dateKey:localDayKey(now)});
 localStorage.setItem("l104history",JSON.stringify(history));
-sales+=t;orders++;localStorage.setItem("l104sales",sales);localStorage.setItem("l104orders",orders);localStorage.setItem("l104day",todayKey);
+sales+=t;orders++;localStorage.setItem("l104sales",sales);localStorage.setItem("l104orders",orders);
 note("Order #"+no+" • "+method+" • "+rm(t)+" ✓");order++;localStorage.setItem("l104order",order);cart=[];render()
 }
 function openHistory(){renderHistory();document.getElementById("historyModal").style.display="block"}
