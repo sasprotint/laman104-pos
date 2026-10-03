@@ -56,6 +56,11 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 370px;min-height:0}.menu{p
   .checkout{flex-shrink:0}
 }
 
+
+.dayDivider{margin:14px 0 7px;background:#2b2927;color:#fff;border-radius:10px;padding:10px 12px;position:sticky;top:0;z-index:2}
+.dayTitle{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.dayMeta{font-size:11px;opacity:.82;margin-top:4px}
+
 </style></head>
 <body><div class="app">
 <header>
@@ -133,7 +138,50 @@ localStorage.setItem("l104history",JSON.stringify(history));
 sales+=t;orders++;localStorage.setItem("l104sales",sales);localStorage.setItem("l104orders",orders);
 note("Order #"+no+" • "+method+" • "+rm(t)+" ✓");order++;localStorage.setItem("l104order",order);cart=[];render()
 }
-function openHistory(){renderHistory();document.getElementById("historyModal").style.display="block"}
+function openHistory(){
+document.getElementById("histModal").classList.add("show");
+let rows=Array.isArray(history)?history:[];
+let groups={};
+rows.forEach(x=>{
+ let k=recordDayKey(x)||"REKOD-LAMA";
+ if(!groups[k])groups[k]=[];
+ groups[k].push(x);
+});
+let keys=Object.keys(groups).sort((a,b)=>{
+ if(a==="REKOD-LAMA")return 1;if(b==="REKOD-LAMA")return -1;
+ return b.localeCompare(a);
+});
+let today=localDayKey();
+let allHTML=keys.map(k=>{
+ let r=groups[k];
+ let sale=r.reduce((a,x)=>a+Number(x.total||0),0);
+ let cups=r.reduce((a,x)=>a+Number(x.qty||1),0);
+ let cash=r.filter(x=>x.method==="Cash").reduce((a,x)=>a+Number(x.total||0),0);
+ let qr=r.filter(x=>x.method==="QR Pay").reduce((a,x)=>a+Number(x.total||0),0);
+ let label="Rekod Lama";
+ if(k!=="REKOD-LAMA"){
+   let p=k.split("-");
+   label=Number(p[2])+"/"+Number(p[1])+"/"+p[0]+(k===today?" • HARI INI":"");
+ }
+ let items=r.map(x=>{
+   let itemText=(Array.isArray(x.items)?x.items:[]).map(i=>{
+     if(typeof i==="string")return i==="[object Object]"?"Rekod lama":i;
+     if(i&&typeof i==="object")return (i.n||i.name||i.flavour||i.item||"Item")+" ×"+(i.q||i.qty||i.quantity||1);
+     return "Item";
+   }).join(" • ");
+   return `<div class="histItem"><div class="histRow"><span class="histNo">#${x.no} • ${x.qty||1} cup</span><span class="histPay">${x.method} • ${rm(Number(x.total||0))}</span></div><div class="histItems">${itemText}</div><div class="histTime">${x.time||""}</div></div>`;
+ }).join("");
+ return `<div class="dayDivider"><div class="dayTitle"><b>${label}</b><b>${rm(sale)}</b></div><div class="dayMeta">${r.length} order/customer • ${cups} cup • Cash ${rm(cash)} • QR ${rm(qr)}</div></div>${items}`;
+}).join("");
+
+let tr=groups[today]||[];
+let ts=tr.reduce((a,x)=>a+Number(x.total||0),0);
+let tc=tr.reduce((a,x)=>a+Number(x.qty||1),0);
+let ca=tr.filter(x=>x.method==="Cash").reduce((a,x)=>a+Number(x.total||0),0);
+let qr=tr.filter(x=>x.method==="QR Pay").reduce((a,x)=>a+Number(x.total||0),0);
+document.getElementById("histSummary").innerHTML=`<div><b>${rm(ts)}</b><span>Hari Ini</span></div><div><b>${tr.length}</b><span>Order</span></div><div><b>${tc}</b><span>Cup</span></div><div><b>${rm(ca)}</b><span>Cash</span></div><div><b>${rm(qr)}</b><span>QR Pay</span></div>`;
+document.getElementById("histList").innerHTML=allHTML||'<div class="empty">Belum ada rekod order.</div>';
+}
 function closeHistory(){document.getElementById("historyModal").style.display="none"}
 function renderHistory(){
 let cash=history.filter(x=>x.method==="CASH").reduce((a,x)=>a+x.total,0);
